@@ -19,13 +19,11 @@ contract Votings {
 
     mapping (address => uint) votersAttempts; // accounting for the number of attempts of each user
 
-    // кандидат
     struct Candidate {
         address addr; // candidate's wallet
         uint votes; // number of votes
     }
 
-    // голосование
     struct Voting {
         mapping (uint256 => Candidate) candidates; // candidates inside the voting
         mapping (address => bool) voters; // people who have already voted
