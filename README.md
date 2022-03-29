@@ -1,4 +1,4 @@
-# Crypton-test-task
+# Crypton-test-task-2
 
 >This is my second project that I wrote in Js and Solidity. It was written as a test assignment for admission to an internship at Crypton.
 
