@@ -15,7 +15,7 @@ task("new", "Creates new voting")
     var candidates = fs.readFileSync('candidates.txt').toString().split("\n");
     await votingContract.newVoting(candidates.length, candidates);
     console.log("\nThe voting has been successfully created!")
-    console.log(`Voting ID: ${await votingContract.lastVoting()}\n`)
+    console.log(`Voting ID: ${await votingContract.lastVoting() - 1}\n`)
     console.log('Candidates:\n')
     console.log('ID|Address')
     for(i in candidates) {
