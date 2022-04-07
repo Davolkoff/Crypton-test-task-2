@@ -68,7 +68,7 @@ contract Votings {
     }
 
     // commission withdrawal
-    function withdraw(address payable _to) public requireOwner {
+    function withdrawComission(address payable _to) public requireOwner {
         if (comission == 0) revert ("Nothing to withdraw");
         _to.transfer(comission);
         comission = 0;
@@ -97,7 +97,7 @@ contract Votings {
     }
 
     // take part in the voting
-    function vote (uint _votingID, uint _candidateID) public {
+    function vote (uint _votingID, uint _candidateID) public payable {
         if (votings[_votingID].voters[msg.sender] == false && votersAttempts[msg.sender] > 0) {
             votings[_votingID].candidates[_candidateID].votes += 1;
             votings[_votingID].voters[msg.sender] = true;
