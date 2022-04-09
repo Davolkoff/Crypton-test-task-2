@@ -28,7 +28,7 @@ describe("Votings", function () {
   
     it("Should create a new voting", async function (){
       await votings.newVoting(candidates.length, candidates);
-      let arrayOfFunction = await votings.votingInfo(Number(await votings.lastVoting())-1);
+      let arrayOfFunction = await votings.votingInfo(Number(await votings.lastVoting()));
       expect(JSON.stringify(arrayOfFunction[0])).to.equal(JSON.stringify(candidates));
     });
   });
@@ -46,13 +46,7 @@ describe("Votings", function () {
     });
 
     it("Should return information about votes", async function () {
-      const tx = {
-        to: votings.address,
-        value: ethers.utils.parseEther('0.1')
-      }
-      const txSend = await owner.sendTransaction(tx);
-      await txSend.wait();
-      await votings.vote(0, 1);
+      await votings.vote(0, 1, {value: ethers.utils.parseEther("0.1")});
       
       let arrayOfFunction = await votings.votingInfo(0);
       let numberedArray = [];
@@ -73,39 +67,18 @@ describe("Votings", function () {
       await votings.newVoting(candidates.length, candidates);
     });
     
-    it("Should check whether the user has paid for the attempt", async function () {
-      await expect(votings.vote(0, 1)).be.revertedWith("Not enough attempts");
-    });
-    
     it("Should check whether the user has voted", async function () {
-      const tx = {
-        to: votings.address,
-        value: ethers.utils.parseEther('0.2')
-      }
-      const txSend = await owner.sendTransaction(tx);
-      await txSend.wait();
-      await votings.vote(0, 1);
+      await votings.vote(0, 1, {value: ethers.utils.parseEther('0.2')});
       await expect(votings.vote(0, 1)).be.revertedWith("Already voted");
     });
   });
   
   describe("Ending of voting and withdraw", function () {
     beforeEach(async function () {
-      const tx = {
-        to: votings.address,
-        value: ethers.utils.parseEther('0.1')
-      }
-      const txSend = await owner.sendTransaction(tx);
-      await txSend.wait();
-      const txSend2 = await addr1.sendTransaction(tx);
-      await txSend2.wait();
-      const txSend3 = await addr2.sendTransaction(tx);
-      await txSend3.wait();
-      
       await votings.newVoting(candidates.length, candidates);
-      await votings.vote(0,1);
-      await votings.connect(addr1).vote(0,1);
-      await votings.connect(addr2).vote(0,0);
+      await votings.vote(0,1, {value: ethers.utils.parseEther('0.1')});
+      await votings.connect(addr1).vote(0,1, {value: ethers.utils.parseEther('0.1')});
+      await votings.connect(addr2).vote(0,0, {value: ethers.utils.parseEther('0.1')});
     });
 
     describe("Ending of voting", function () {
@@ -137,13 +110,13 @@ describe("Votings", function () {
         await network.provider.send("evm_increaseTime", [260000])
         await votings.connect(addr3).endVoting(0);
         let startBalance = await ethers.utils.formatEther(await ethers.provider.getBalance(addr5.address));
-        await votings.withdraw(addr5.address);
+        await votings.withdrawComission(addr5.address);
         let endBalance = await ethers.utils.formatEther(await ethers.provider.getBalance(addr5.address));
         expect(Math.round(parseFloat(endBalance - startBalance) * 100) / 100).to.equal(0.03);
       });
   
       it("Should revert the action if the balance of contract is 0", async function () {
-        await expect(votings.withdraw(owner.address)).to.be.revertedWith("Nothing to withdraw");
+        await expect(votings.withdrawComission(owner.address)).to.be.revertedWith("Nothing to withdraw");
       });
     });
   });
