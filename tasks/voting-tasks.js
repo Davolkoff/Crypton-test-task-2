@@ -2,6 +2,7 @@ const { task } = require('hardhat/config');
 const VotingArtifact = require('../artifacts/contracts/Votings.sol/Votings.json');
 let fs = require('fs');
 
+
 task("new", "Creates new voting")
   .addParam("contract", "Address of contract")
   .setAction(async (taskArgs) => {

@@ -32,17 +32,38 @@ contract Votings {
     uint comission; // all commissions are saved here
     Voting [] votings; // list of votings
 
+    event VotingCreating (
+        uint indexed votingID,
+        uint numOfCandidates
+    );
+
+    event ComissionWithdrawing (
+        uint value;
+    );
+
+    event VotingForCandidate (
+        uint indexed votingID;
+        address indexed candidate;
+    );
+
+    event VotingEnding (
+        uint indexed votingID;
+        uint winnersNumber; // number of winners
+        uint amount; // winning amount 
+    );
+
     // creating a new vote
-    function newVoting (uint numOfCandidates, address[] memory fCandidates) external requireOwner {
-        votings.push();
+    function newVoting (uint _numOfCandidates, address[] memory _fCandidates) external requireOwner {
         Voting storage new_voting = votings[votings.length-1];
         new_voting.creationTime = block.timestamp;
         
         // adding candidates to the voting
-        for (uint i = 0; i < numOfCandidates; i++){
+        for (uint i = 0; i < _numOfCandidates; i++){
         new_voting.candidates.push();
-        new_voting.candidates[i].addr = fCandidates[i];
+        new_voting.candidates[i].addr = _fCandidates[i];
         }
+
+        emit VotingCreating(votings.length - 1, _numOfCandidates);
     }
 
     // returns the id of the last vote
@@ -67,7 +88,19 @@ contract Votings {
     function withdrawComission(address payable _to) external requireOwner {
         if (comission == 0) revert ("Nothing to withdraw");
         _to.transfer(comission);
+        emit ComissionWithdrawing(comission);
         comission = 0;
+    }
+
+    // take part in the voting
+    function vote (uint _votingID, uint _candidateID) external payable {
+        require(votings[_votingID].voters[msg.sender] == false, "Already voted");
+        
+        votings[_votingID].candidates[_candidateID].votes += 1;
+        votings[_votingID].voters[msg.sender] = true;
+
+        emit VotingForCandidate (_votingID, _candidateID);
+
     }
 
     // ends the voting
@@ -93,8 +126,12 @@ contract Votings {
             payable(votings[_votingID].candidates[winnerID].addr).transfer(sumOfTransactions*9/10);
             comission = comission + (sumOfTransactions*1/10);
             votings[_votingID].ended = true;
+            emit VotingEnding (_votingID, 1, sumOfTransactions*9/10);
         }
-        else if (maxVotes == 0) votings[_votingID].ended = true;
+        else if (maxVotes == 0) {
+            emit VotingEnding (_votingID, 0, 0);
+            votings[_votingID].ended = true;
+        }
         else {
             uint winning = sumOfTransactions / winnersCount * 9 / 10;
             comission = sumOfTransactions * 1 / 10;
@@ -104,14 +141,7 @@ contract Votings {
                     payable(votings[_votingID].candidates[i].addr).transfer(winning);
                 }
             }
+            emit VotingEnding (_votingID, winnersCount, winning);
         }
-    }
-
-    // take part in the voting
-    function vote (uint _votingID, uint _candidateID) external payable {
-        require(votings[_votingID].voters[msg.sender] == false, "Already voted");
-        
-        votings[_votingID].candidates[_candidateID].votes += 1;
-        votings[_votingID].voters[msg.sender] = true;
     }
 }

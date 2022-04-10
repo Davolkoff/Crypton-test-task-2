@@ -1,0 +1,4 @@
+{
+    "solidity-va.deco.warn.reserved": true,
+    "solidity-va.diagnostics.cdili_json.import": false
+}
