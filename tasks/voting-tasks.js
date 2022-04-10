@@ -72,7 +72,6 @@ task("vote", "Vote for candidate")
     )
 
     await votingContract.vote(taskArgs.vid, taskArgs.cid, {value: ethers.utils.parseEther("0.1")});
-    console.log(await ethers.provider.getBalance(taskArgs.contract));
     console.log(`You successfully voted for ${taskArgs.cid} candidate in #${taskArgs.vid} voting`);
   });
 

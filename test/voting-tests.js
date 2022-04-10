@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
 
 let owner;
 let addr1;
@@ -81,33 +81,48 @@ describe("Votings", function () {
       await votings.connect(addr2).vote(0,0, {value: ethers.utils.parseEther('0.1')});
     });
 
-    describe("Ending of voting", function () {
+    describe("Ending of voting with time increasing", function () {
+      beforeEach(async function () {
+        await network.provider.send("evm_increaseTime", [260000]);
+        await network.provider.send("evm_mine");
+      });
+
       it("Should end the voting", async function () {
-        await network.provider.send("evm_increaseTime", [260000])
         let startBalance = await ethers.utils.formatEther(await ethers.provider.getBalance(addr2.address));
         
-        await votings.connect(addr3).endVoting(0)
+        await votings.connect(addr3).endVoting(0);
         let endBalance = await ethers.utils.formatEther(await ethers.provider.getBalance(addr2.address));
         
         let arrayOfFunction = await votings.votingInfo(0);
         expect(arrayOfFunction[3]).to.equal(true);
         expect(Math.round(parseFloat(endBalance - startBalance) * 100) / 100).to.equal(0.27);
       });
-  
-      it("Should revert the action if 3 days have not passed", async function () {
-        await expect(votings.connect(addr3).endVoting(0)).to.be.revertedWith("It's not time yet");
+
+      it("Should divide the winnings between the winners", async function () {
+        let startBalance1 = await ethers.utils.formatEther(await ethers.provider.getBalance(addr1.address));
+        let startBalance2 = await ethers.utils.formatEther(await ethers.provider.getBalance(addr2.address));
+        await votings.connect(addr4).vote(0,0, {value: ethers.utils.parseEther('0.1')});
+        await votings.connect(addr3).endVoting(0);
+        
+        let endBalance1 = await ethers.utils.formatEther(await ethers.provider.getBalance(addr1.address));
+        let endBalance2 = await ethers.utils.formatEther(await ethers.provider.getBalance(addr2.address));
+
+        expect(Math.round(parseFloat(endBalance1 - startBalance1) * 100) / 100).to.equal(0.18);
+        expect(Math.round(parseFloat(endBalance2 - startBalance2) * 100) / 100).to.equal(0.18);
       });
   
       it("Should revert the action if the voting already ended", async function () {
-        await network.provider.send("evm_increaseTime", [260000])
         await votings.connect(addr3).endVoting(0);
         await expect(votings.connect(addr3).endVoting(0)).to.be.revertedWith("Voting already ended");
       });
     });
     
+    
+
     describe("Withdraw", function () {
       it("Should withdraw comission from contract", async function () {
-        await network.provider.send("evm_increaseTime", [260000])
+        await network.provider.send("evm_increaseTime", [260000]);
+        await network.provider.send("evm_mine");
         await votings.connect(addr3).endVoting(0);
         let startBalance = await ethers.utils.formatEther(await ethers.provider.getBalance(addr5.address));
         await votings.withdrawComission(addr5.address);
@@ -118,6 +133,31 @@ describe("Votings", function () {
       it("Should revert the action if the balance of contract is 0", async function () {
         await expect(votings.withdrawComission(owner.address)).to.be.revertedWith("Nothing to withdraw");
       });
+    });
+  });
+
+  describe("End of voting other tests", function () {
+    beforeEach(async function () {
+      await votings.newVoting(candidates.length, candidates);
+    });
+
+    it("Should revert the action if 3 days have not passed", async function () {
+      await expect(votings.connect(addr3).endVoting(0)).to.be.revertedWith("It's not time yet");
+    });
+
+    it("Shouldn't send winnings if all voting participants have 0 votes", async function () {
+      await network.provider.send("evm_increaseTime", [260000]);
+      await network.provider.send("evm_mine");
+      let startBalance1 = await ethers.utils.formatEther(await ethers.provider.getBalance(addr1.address));
+      let startBalance2 = await ethers.utils.formatEther(await ethers.provider.getBalance(addr2.address));
+      let startBalance3 = await ethers.utils.formatEther(await ethers.provider.getBalance(addr3.address));
+      await votings.connect(addr3).endVoting(0);
+      let endBalance1 = await ethers.utils.formatEther(await ethers.provider.getBalance(addr1.address));
+      let endBalance2 = await ethers.utils.formatEther(await ethers.provider.getBalance(addr2.address));
+      let endBalance3 = await ethers.utils.formatEther(await ethers.provider.getBalance(addr3.address));
+      expect(parseFloat(endBalance1 - startBalance1)).to.equal(0);
+      expect(parseFloat(endBalance2 - startBalance2)).to.equal(0);
+      expect(parseFloat(endBalance3 - startBalance3)).to.equal(0);
     });
   });
 

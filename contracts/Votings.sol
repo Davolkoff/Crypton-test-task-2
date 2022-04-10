@@ -78,18 +78,33 @@ contract Votings {
         uint sumOfTransactions;
         uint maxVotes;
         uint winnerID;
-            
+        uint winnersCount;
         for (uint i = 0; i < votings[_votingID].candidates.length; i++) {
             sumOfTransactions = sumOfTransactions + (votings[_votingID].candidates[i].votes) * 100000000000000000;
             if (votings[_votingID].candidates[i].votes > maxVotes) {
                 maxVotes = votings[_votingID].candidates[i].votes;
                 winnerID = i;
+                winnersCount = 1;
+            }
+            else if (votings[_votingID].candidates[i].votes == maxVotes) winnersCount += 1;
+        }
+        
+        if (winnersCount == 1) {
+            payable(votings[_votingID].candidates[winnerID].addr).transfer(sumOfTransactions*9/10);
+            comission = comission + (sumOfTransactions*1/10);
+            votings[_votingID].ended = true;
+        }
+        else if (maxVotes == 0) votings[_votingID].ended = true;
+        else {
+            uint winning = sumOfTransactions / winnersCount * 9 / 10;
+            comission = sumOfTransactions * 1 / 10;
+
+            for (uint i = 0; i < votings[_votingID].candidates.length; i++) {
+                if (votings[_votingID].candidates[i].votes == maxVotes) {
+                    payable(votings[_votingID].candidates[i].addr).transfer(winning);
+                }
             }
         }
-            
-        payable(votings[_votingID].candidates[winnerID].addr).transfer(sumOfTransactions*9/10);
-        comission = comission + (sumOfTransactions*1/10);
-        votings[_votingID].ended = true;
     }
 
     // take part in the voting
