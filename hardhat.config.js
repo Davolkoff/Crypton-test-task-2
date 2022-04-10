@@ -19,7 +19,7 @@ module.exports = {
     cache: "./cache",
     artifacts: "./artifacts"
   },
-  defaultNetwork: "localhost",
+  defaultNetwork: "rinkeby",
   networks: {
     rinkeby:{
       url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_KEY}`,

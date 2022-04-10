@@ -14,9 +14,10 @@ task("new", "Creates new voting")
     )
 
     var candidates = fs.readFileSync('candidates.txt').toString().split("\n");
-    await votingContract.newVoting(candidates.length, candidates);
-    console.log("\nThe voting has been successfully created!")
-    console.log(`Voting ID: ${await votingContract.lastVoting()}\n`)
+    const newVotingResponse = await votingContract.newVoting(candidates.length, candidates);
+    const newVotingReceipt = await newVotingResponse.wait();
+    console.log("\nThe voting has been successfully created!");
+    console.log(`Voting ID: ${newVotingReceipt.events[0].args[0].toString()}\n`);
     console.log('Candidates:\n')
     console.log('ID|Address')
     for(i in candidates) {
@@ -35,15 +36,15 @@ task("info", "Information about voting")
       signer
     )
     let info = await votingContract.votingInfo (taskArgs.vid);
-    console.log(`         -Information about contract #${taskArgs.vid}-`);
+    console.log(`\n          -Information about voting #${taskArgs.vid}-`);
     console.log("\n                  Candidates:\n");
     console.log("ID|                 Address                |  Votes")
     for (let i = 0; i < info[0].length; i++){
-      console.log(`${i}.${info[0][i]}\t${info[1][i]}`);
+      console.log(`${i}. ${info[0][i]}\t${info[1][i]}`);
     }
     const timeObject = new Date(Number(info[2])*1000);
-    console.log(`\n^Date of creation of the vote: ${timeObject}`);
-    if (info[3] == true) console.log("\n          -The voting has already ended-");
+    console.log(`\n^Date of creation of the voting: ${timeObject}\n`);
+    if (info[3] == true) console.log("          -The voting has already ended-\n");
   });
 
 task("withdraw", "Withdraws comission")
@@ -56,8 +57,10 @@ task("withdraw", "Withdraws comission")
       VotingArtifact.abi,
       signer
     )
-    await votingContract.withdrawComission(taskArgs.address);
-    console.log("The commission has been successfully withdrawn");
+    const withdrawResponse = await votingContract.withdrawComission(taskArgs.address);
+    const withdrawReceipt = await withdrawResponse.wait();
+    console.log("\nThe comission has been successfully withdrawn");
+    console.log(`\nAmount: ${ethers.utils.formatEther(withdrawReceipt.events[0].args[0].toString())} ETH`);
   });
 
 task("vote", "Vote for candidate")
@@ -73,7 +76,7 @@ task("vote", "Vote for candidate")
     )
 
     await votingContract.vote(taskArgs.vid, taskArgs.cid, {value: ethers.utils.parseEther("0.1")});
-    console.log(`You successfully voted for ${taskArgs.cid} candidate in #${taskArgs.vid} voting`);
+    console.log(`\nYou successfully voted for ${taskArgs.cid} candidate in #${taskArgs.vid} voting\n`);
   });
 
 task("end", "Ends voting")
@@ -86,6 +89,17 @@ task("end", "Ends voting")
       VotingArtifact.abi,
       signer
     )
-    await votingContract.endVoting(taskArgs.vid);
-    console.log("Voting has been completed successfully");
+    const endVotingResponse = await votingContract.endVoting(taskArgs.vid);
+    const endVotingReceipt = await endVotingResponse.wait();
+    console.log("\nVoting has been completed successfully");
+    
+    if (Number(endVotingReceipt.events[0].args[1]) == 0) console.log("\nAll candidates had 0 votes, no one won\n");
+    else if (Number(endVotingReceipt.events[0].args[1]) == 1) {
+      console.log("\nOnly one user won in this voting\n")
+      console.log(`Winning: ${ethers.utils.formatEther(endVotingReceipt.events[0].args[2].toString())} ETH\n`);
+    }
+    else {
+      console.log(`\nWinning divided between ${endVotingReceipt.events[0].args[1].toString()} candidates\n`)
+      console.log(`Winning: ${ethers.utils.formatEther(endVotingReceipt.events[0].args[2].toString())} ETH\n`);
+    }
   });
