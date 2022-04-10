@@ -28,7 +28,7 @@ describe("Votings", function () {
   
     it("Should create a new voting", async function (){
       await votings.newVoting(candidates.length, candidates);
-      let arrayOfFunction = await votings.votingInfo(Number(await votings.lastVoting()));
+      let arrayOfFunction = await votings.votingInfo(Number(await votings.lastVoting()) - 1);
       expect(JSON.stringify(arrayOfFunction[0])).to.equal(JSON.stringify(candidates));
     });
   });

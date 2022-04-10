@@ -19,13 +19,13 @@ contract Votings {
 
     struct Candidate {
         address addr; // candidate's wallet
-        uint votes; // number of votes
+        uint32 votes; // number of votes
     }
 
     struct Voting {
         Candidate[] candidates; // list of candidates
         mapping (address => bool) voters; // people who have already voted
-        uint creationTime; // creation time to track expiration time
+        uint32 creationTime; // creation time to track expiration time
         bool ended; // it is necessary so that the voting can be completed only once
     }
 
@@ -33,8 +33,8 @@ contract Votings {
     Voting [] votings; // list of votings
 
     event VotingCreating (
-        uint indexed votingID,
-        uint numOfCandidates
+        uint24 indexed votingID,
+        uint32 numOfCandidates
     );
 
     event ComissionWithdrawing (
@@ -42,23 +42,23 @@ contract Votings {
     );
 
     event VotingForCandidate (
-        uint indexed votingID;
+        uint24 indexed votingID;
         address indexed candidate;
     );
 
     event VotingEnding (
-        uint indexed votingID;
-        uint winnersNumber; // number of winners
+        uint24 indexed votingID;
+        uint32 winnersNumber; // number of winners
         uint amount; // winning amount 
     );
 
     // creating a new vote
-    function newVoting (uint _numOfCandidates, address[] memory _fCandidates) external requireOwner {
+    function newVoting (uint32 _numOfCandidates, address[] memory _fCandidates) external requireOwner {
         Voting storage new_voting = votings[votings.length-1];
         new_voting.creationTime = block.timestamp;
         
         // adding candidates to the voting
-        for (uint i = 0; i < _numOfCandidates; i++){
+        for (uint32 i = 0; i < _numOfCandidates; i++){
         new_voting.candidates.push();
         new_voting.candidates[i].addr = _fCandidates[i];
         }
@@ -66,18 +66,18 @@ contract Votings {
         emit VotingCreating(votings.length - 1, _numOfCandidates);
     }
 
-    // returns the id of the last vote
-    function lastVoting () external view returns (uint) {
-        return votings.length - 1;
+    // returns the id of the last vote + 1
+    function lastVoting () external view returns (uint24) {
+        return votings.length;
     }
 
     // returns voting information
-    function votingInfo (uint _votingID) external view returns (address [] memory, uint [] memory, uint, bool) {
+    function votingInfo (uint24 _votingID) external view returns (address [] memory, uint32 [] memory, uint32, bool) {
     
     address [] memory tempCandidates = new address[](votings[_votingID].candidates.length);
-    uint[] memory tempVotes = new uint[](votings[_votingID].candidates.length);
+    uint32 [] memory tempVotes = new uint[](votings[_votingID].candidates.length);
 
-    for (uint i = 0; i < votings[_votingID].candidates.length; i++) {
+    for (uint32 i = 0; i < votings[_votingID].candidates.length; i++) {
         tempCandidates[i] = votings[_votingID].candidates[i].addr;
         tempVotes[i] = votings[_votingID].candidates[i].votes;
     }
@@ -93,7 +93,7 @@ contract Votings {
     }
 
     // take part in the voting
-    function vote (uint _votingID, uint _candidateID) external payable {
+    function vote (uint24 _votingID, uint32 _candidateID) external payable {
         require(votings[_votingID].voters[msg.sender] == false, "Already voted");
         
         votings[_votingID].candidates[_candidateID].votes += 1;
@@ -104,15 +104,15 @@ contract Votings {
     }
 
     // ends the voting
-    function endVoting (uint _votingID) external {
+    function endVoting (uint24 _votingID) external {
         require(block.timestamp >= votings[_votingID].creationTime + 259200, "It's not time yet");
         require(votings[_votingID].ended == false, "Voting already ended");
         
         uint sumOfTransactions;
-        uint maxVotes;
-        uint winnerID;
-        uint winnersCount;
-        for (uint i = 0; i < votings[_votingID].candidates.length; i++) {
+        uint32 maxVotes;
+        uint32 winnerID;
+        uint32 winnersCount;
+        for (uint32 i = 0; i < votings[_votingID].candidates.length; i++) {
             sumOfTransactions = sumOfTransactions + (votings[_votingID].candidates[i].votes) * 100000000000000000;
             if (votings[_votingID].candidates[i].votes > maxVotes) {
                 maxVotes = votings[_votingID].candidates[i].votes;
@@ -136,7 +136,7 @@ contract Votings {
             uint winning = sumOfTransactions / winnersCount * 9 / 10;
             comission = sumOfTransactions * 1 / 10;
 
-            for (uint i = 0; i < votings[_votingID].candidates.length; i++) {
+            for (uint32 i = 0; i < votings[_votingID].candidates.length; i++) {
                 if (votings[_votingID].candidates[i].votes == maxVotes) {
                     payable(votings[_votingID].candidates[i].addr).transfer(winning);
                 }
