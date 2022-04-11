@@ -4,6 +4,7 @@
 
 >The project contains a smart contract, tasks for performing the functions prescribed in the smart contract, script to deploy it to rinkeby network and unit tests, that can be run through the solidity coverage plugin.
 
+--------------------------
 
 Run script to deploy contract in Rinkeby:
 ```shell
@@ -95,4 +96,4 @@ Run solidity coverage:
 ```shell
 npx hardhat coverage --network hardhat
 ```
-
+--------------------------
