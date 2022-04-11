@@ -59,7 +59,7 @@ contract Votings {
         new_voting.creationTime = block.timestamp;
         
         // adding candidates to the voting
-        for (uint i = 0; i < numOfCandidates; i++){
+        for (uint i = 0; i < numOfCandidates; ++i){
         new_voting.candidates.push();
         new_voting.candidates[i].addr = fCandidates[i];
         }
@@ -73,7 +73,7 @@ contract Votings {
     address [] memory tempCandidates = new address[](votings[_votingID].candidates.length);
     uint[] memory tempVotes = new uint[](votings[_votingID].candidates.length);
 
-    for (uint i = 0; i < votings[_votingID].candidates.length; i++) {
+    for (uint i = 0; i < votings[_votingID].candidates.length; ++i) {
         tempCandidates[i] = votings[_votingID].candidates[i].addr;
         tempVotes[i] = votings[_votingID].candidates[i].votes;
     }
@@ -97,7 +97,7 @@ contract Votings {
         uint maxVotes;
         uint winnerID;
         uint winnersCount;
-        for (uint i = 0; i < votings[_votingID].candidates.length; i++) {
+        for (uint i = 0; i < votings[_votingID].candidates.length; ++i) {
             sumOfTransactions = sumOfTransactions + (votings[_votingID].candidates[i].votes) * 100000000000000000;
             if (votings[_votingID].candidates[i].votes > maxVotes) {
                 maxVotes = votings[_votingID].candidates[i].votes;
@@ -121,7 +121,7 @@ contract Votings {
             uint winning = sumOfTransactions / winnersCount * 9 / 10;
             comission = sumOfTransactions * 1 / 10;
 
-            for (uint i = 0; i < votings[_votingID].candidates.length; i++) {
+            for (uint i = 0; i < votings[_votingID].candidates.length; ++i) {
                 if (votings[_votingID].candidates[i].votes == maxVotes) {
                     payable(votings[_votingID].candidates[i].addr).transfer(winning);
                 }
