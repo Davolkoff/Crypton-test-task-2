@@ -123,3 +123,4 @@ In all "for" cycles, I used preincrements because they also consume less gas
   
 #### <a name="EndExplanation"></a> - End of vote
 In line 116 of the solidity file, I used the variable "maxVotes" in if, because in this case all the people are the winners of the vote, but in fact there are no winners. I added the situation with the absence of winners for the correct output of information to the console at the end of voting, so that users do not think that all the voting participants won.
+--------------------------
