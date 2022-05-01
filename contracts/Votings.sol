@@ -43,7 +43,7 @@ contract Votings {
 
     event VotingForCandidate (
         uint indexed votingID,
-        address indexed candidate
+        uint indexed candidate
     );
 
     event VotingEnding (
@@ -134,7 +134,7 @@ contract Votings {
     // take part in the voting
     function vote (uint _votingID, uint _candidateID) external payable {
         require(votings[_votingID].voters[msg.sender] == false, "Already voted");
-        
+        emit VotingForCandidate (_votingID, _candidateID);
         votings[_votingID].candidates[_candidateID].votes += 1;
         votings[_votingID].voters[msg.sender] = true;
     }

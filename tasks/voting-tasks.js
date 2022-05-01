@@ -5,6 +5,7 @@ let fs = require('fs');
 
 task("new", "Creates new voting")
   .addParam("contract", "Address of contract")
+  .addOptionalParam("candidates", "Path to file with candidates")
   .setAction(async (taskArgs) => {
     const [signer] = await hre.ethers.getSigners();
     const votingContract = new hre.ethers.Contract(
@@ -12,8 +13,8 @@ task("new", "Creates new voting")
       VotingArtifact.abi,
       signer
     )
-
-    var candidates = fs.readFileSync('candidates.txt').toString().split("\n");
+    if(taskArgs.candidates == null) var candidates = fs.readFileSync('candidates.txt').toString().split("\n");
+    else var candidates = fs.readFileSync(taskArgs.candidates).toString().split("\n");
     const newVotingResponse = await votingContract.newVoting(candidates.length, candidates);
     const newVotingReceipt = await newVotingResponse.wait();
     console.log("\nThe voting has been successfully created!");
