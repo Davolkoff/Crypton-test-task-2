@@ -31,21 +31,26 @@ npx hardhat coverage --network hardhat
 -------------------------
 ## 2. Tasks:
 
-#### <a name="New"> - Creates a new vote, using a list from a file candidates.txt (The command can only be run by the contract owner)
+#### <a name="New"> - Creates a new vote, using a list from a file candidates.txt or from another file if you add argument --candidates and file's path (The command can only be run by the contract owner)
 ```shell
-npx hardhat new
-
-Usage: hardhat [GLOBAL OPTIONS] new --contract <STRING>
+Usage: hardhat [GLOBAL OPTIONS] new --candidates <STRING> --contract <STRING>
 
 OPTIONS:
 
-  --contract	Address of contract 
+  --candidates	Path to file with candidates 
+  --contract  	Address of contract 
+
+new: Creates new voting
 ```
 Example:
 ```shell
 npx hardhat new --contract 0x1f8A6c11cD40287DB45dF8B6B80D49727f7cFC94
 ```
-
+2nd Example:
+```shell
+npx hardhat new --contract 0x1f8A6c11cD40287DB45dF8B6B80D49727f7cFC94 --candidates candLists/list1.txt
+```
+ 
 #### <a name="Info"></a> - Returns information about a specific vote
 ```shell
 npx hardhat info
